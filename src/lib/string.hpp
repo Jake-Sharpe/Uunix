@@ -16,6 +16,7 @@ public:
 
   friend String operator+(const String &a, const String &b);
   String &operator=(const String &other);
+  bool operator==(const String &other) const;
 
   String(int64_t number);
 };

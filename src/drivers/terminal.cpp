@@ -25,7 +25,10 @@ void Terminal::Shift() {
   }
 }
 
-void Terminal::Newline() { Shift(); }
+void Terminal::Newline() {
+  Shift();
+  last = 0;
+}
 
 void Terminal::Write(const char *str, int offset) {
   Shift();
@@ -52,13 +55,27 @@ void Terminal::Write(const char *str, int offset) {
     x++;
   }
   buffer[0][l + offset] = '\0';
+  last = l + offset;
+}
+
+void Terminal::AddChar(char c) {
+  if (last < 0) {
+    last = 0;
+  }
+  if (c == '\n') {
+    Newline();
+    return;
+  }
+  buffer[0][last] = c;
+  buffer[0][last + 1] = '\0';
+  last++;
 }
 
 extern char Buffer[256];
 void Terminal::Draw() {
   Framebuffer::clear(0x000000);
   for (int y = 0; y < 40; y++) {
-    vga_print(buffer[y], 0, 720 - y * 20, 3);
+    vga_print(buffer[y], 0, 700 - y * 20, 3);
   }
   RTC::get_time_string(Buffer);
   vga_print(Buffer, 1064, 0, 2);

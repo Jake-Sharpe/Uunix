@@ -1,4 +1,5 @@
 #include "../drivers/Display/framebuffer.hpp"
+#include "../drivers/keyboard/keyboard.hpp"
 #include "../drivers/terminal.hpp"
 #include "../fs/Disk.hpp"
 #include "../fs/TarFS.hpp"
@@ -6,9 +7,9 @@
 #include "../lib/string.hpp"
 #include "MemoryManager/Kmalloc.hpp"
 #include "MemoryManager/MMap.hpp"
+#include "Shell/Shell.hpp"
 #include "Timing/RTC.hpp"
 #include "debug.hpp"
-#include "font.hpp"
 #include "syscalls.hpp"
 
 static Terminal global_term;
@@ -37,20 +38,31 @@ extern "C" void kmain(void *multiboot_info) {
   Debug::print("Files in root directory: ");
 
   Debug::newline();
-  global_term.Write("Files:\n");
-  for (uint64_t i = 0; i < FilesList->size(); i++) {
-    global_term.Write(FilesList->get(i).buffer);
-    global_term.Newline();
-    global_term.Write("{");
-    global_term.Write((char *)ReadFile(FilesList->get(i).buffer), 2);
-    global_term.Write("}");
-  }
 
   Debug::print("Fully Initialized");
   while (1) {
     global_term.Draw();
     RTC::DateTime dt = RTC::get_datetime();
     while (RTC::get_datetime().second == dt.second) {
+      char c = Keyboard::get_char();
+      if (c != 0) {
+        if (c == '\n') {
+          Vector<String> *files = Shell::RunCommand(global_term.buffer[0]);
+          for (uint64_t i = 0; i < files->size(); i++) {
+            global_term.Write(files->get(i).buffer);
+            global_term.Newline();
+          }
+          global_term.Newline();
+        } else if (c == '\b') {
+          if (global_term.last != 0) {
+            global_term.last--;
+            global_term.buffer[0][global_term.last] = ' ';
+          }
+        } else {
+          global_term.AddChar(c);
+        }
+        global_term.Draw();
+      }
     }
   }
 }
