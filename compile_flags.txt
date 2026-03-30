@@ -1,0 +1,9 @@
+-I.
+-Iinclude
+-ffreestanding
+-mno-sse
+-mno-sse2
+-mno-mmx
+-mno-80387
+-Wall
+-Wextra
