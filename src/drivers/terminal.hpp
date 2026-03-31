@@ -3,6 +3,7 @@
 
 struct Terminal {
   int last = 0;
+  bool cursor = true;
   char buffer[80][256];
   void Shift();
   void init();

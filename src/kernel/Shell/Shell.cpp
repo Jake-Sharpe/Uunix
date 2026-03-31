@@ -2,6 +2,7 @@
 #include "../../drivers/keyboard/keyboard.hpp"
 #include "../../drivers/terminal.hpp"
 #include "../../fs/TarFS.hpp"
+#include "../MemoryManager/Kmalloc.hpp"
 #include "../Timing/RTC.hpp"
 
 Terminal Shell::global_term;
@@ -35,7 +36,7 @@ Vector<String> *Shell::RunCommand(String command) {
     lines->push_back(String("OS: Uunix"));
     lines->push_back(String("Version: 0.0.1"));
     lines->push_back(String("Architecture: x86_64"));
-    lines->push_back(String("Kernel: Uunix Kernel"));
+    lines->push_back(String("Kernel: The Unlike unix Kernel"));
     return lines;
   } else if (command == "help") {
     Vector<String> *lines = new Vector<String>();
@@ -45,66 +46,55 @@ Vector<String> *Shell::RunCommand(String command) {
     lines->push_back(String("Neofetch - Show system info"));
     lines->push_back(String("help - Show this message"));
     return lines;
-  } else if (command == "larp") {
+  } else if (command.StartsWith("echo ")) {
     Vector<String> *lines = new Vector<String>();
-    lines->push_back("                   -                root@uunix");
-    lines->push_back("                  .o+               ----------");
-    lines->push_back("                 `ooo/              OS: Uunix x86_64 "
-                     "(Antigravity Edition)");
-    lines->push_back(
-        "                `+oooo:             Kernel: 0.0.1-godmode-rolling");
-    lines->push_back("               `+oooooo:            Uptime: 420 years, "
-                     "69 days, 13 hours");
-    lines->push_back(
-        "              -+oooooo+:            Packages: 0 (Bloat is a sin)");
-    lines->push_back(
-        "             `/:-:++oooo+:          Shell: uunix-sh v9001.0");
-    lines->push_back(
-        "            `/++++/+++++++:         Resolution: 32K (30720x17280)");
-    lines->push_back("           `/++++++++++++++:        DE: None (I am the "
-                     "desktop environment)");
-    lines->push_back("          `/+++ooooooooooooo/       WM: Antigravity-WM");
-    lines->push_back("         ./ooosssso++osssssso+      CPU: Intel Core "
-                     "i129-29900KS (1024) @ 128GHz");
-    lines->push_back("        .ooossssso-````/ossssss+    GPU: NVIDIA RTX 9090 "
-                     "Ti Quantum (1TB VRAM)");
-    lines->push_back("       -osssssso.      :ssssssso.   Memory: 512TB / 2PB "
-                     "(DDR9 @ 1,000,000MHz)");
-    lines->push_back("      :osssssss/        osssso+++.  Disk: 50 Petabyte "
-                     "Absolute-Zero SSD");
-    lines->push_back("     /ossssssss/        +ssssooo/-  Network: 1000Gbps "
-                     "Direct-to-Brain Link");
-    lines->push_back("   `/osssso+/-          -:/+osssso+-");
-    lines->push_back("  `+sso+:-               `.-/+oso:");
-    lines->push_back(" ++: .                         ` -/+/");
-    lines->push_back(" .`                                /");
+    lines->push_back(command.Substring(5, command.length));
+    return lines;
+  } else {
+    Vector<String> *lines = new Vector<String>();
+    lines->push_back(String("Command not found: ") + command);
     return lines;
   }
 }
 
 void Shell::KernelLoop() {
+  if (global_term.buffer[0][0] == '\0') {
+    global_term.AddChar('>');
+    global_term.AddChar(' ');
+  }
   global_term.Draw();
   RTC::DateTime dt = RTC::get_datetime();
   while (RTC::get_datetime().second == dt.second) {
     char c = Keyboard::get_char();
     if (c != 0) {
       if (c == '\n') {
-        if (global_term.buffer[0][0] != '\0') {
-          Vector<String> *files = Shell::RunCommand(global_term.buffer[0]);
+        if (global_term.buffer[0][2] != '\0') {
+          String cmd = global_term.buffer[0];
+          if (cmd.length > 1 && cmd.buffer[0] == '>' && cmd.buffer[1] == ' ') {
+            cmd = cmd.Substring(2, cmd.length);
+          }
+          Vector<String> *files = Shell::RunCommand(cmd);
+          global_term.Newline();
           for (uint64_t i = 0; i < files->size(); i++) {
             global_term.Write(files->get(i).buffer);
             global_term.Newline();
           }
-          global_term.Newline();
           delete files;
+          global_term.AddChar('>');
+          global_term.AddChar(' ');
         } else {
           global_term.Newline();
+          global_term.AddChar('>');
+          global_term.AddChar(' ');
         }
       } else if (c == '\b') {
-        if (global_term.last != 0) {
+        if (global_term.last > 1) {
           global_term.last--;
           global_term.buffer[0][global_term.last] = ' ';
         }
+      } else if (global_term.last == 0) {
+        global_term.AddChar('>');
+        global_term.AddChar(' ');
       } else {
         global_term.AddChar(c);
       }

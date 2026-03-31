@@ -33,7 +33,6 @@ void Terminal::Newline() {
 }
 
 void Terminal::Write(const char *str, int offset) {
-  Shift();
   int x = 0;
   while (x < offset) {
     buffer[0][x] = ' ';
@@ -89,9 +88,14 @@ extern char Buffer[256];
 void Terminal::Draw() {
   Framebuffer::clear(0x000000);
   for (int y = 0; y < 80; y++) {
-    vga_print(buffer[y], 0, 700 - y * 10, 2);
+    vga_print(buffer[y], 0, 700 - y * 20, 2);
+  }
+  if (cursor && buffer[0][0] != '\0') {
+    char cursorChar[2] = {127, '\0'};
+    vga_print(cursorChar, last * 12, 700, 2);
   }
   RTC::get_time_string(Buffer);
   vga_print(Buffer, 1064, 0, 2);
-  vga_print(("Mb:" + String(allocs)).buffer, 1064, 20, 2);
+  String print = ("Mb:" + String(GetAllocs()));
+  vga_print(print.buffer, 1064, 20, 2);
 }

@@ -5,8 +5,8 @@
 #include <stddef.h> // for size_t
 #include <stdint.h>
 
-static int allocs = 0;
-
+extern int allocs;
+int GetAllocs();
 struct HeapBlock {
   uint64_t size_and_flag;
   HeapBlock *next;

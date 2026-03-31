@@ -2,7 +2,10 @@
 #include "../debug.hpp"
 #include "MMap.hpp"
 
+int allocs = 0;
 static HeapBlock *heap_start = nullptr;
+
+int GetAllocs() { return allocs; }
 
 void kmalloc_init() {
   // 1. Actually allocate 1MB (256 pages * 4096)
@@ -27,7 +30,6 @@ void kmalloc_init() {
 }
 
 void *kmalloc(uint64_t size) {
-  allocs += size;
   if (size == 0)
     return nullptr;
 
@@ -50,9 +52,11 @@ void *kmalloc(uint64_t size) {
         // Setup current used block
         current->set_used(size);
         current->next = new_block;
+        allocs += size;
       } else {
         // Not enough room to split, just take the whole block
         current->set_used(current_size);
+        allocs += current_size;
       }
 
       return (void *)((uint8_t *)current + sizeof(HeapBlock));
@@ -70,10 +74,10 @@ void kfree(void *ptr) {
 
   // Step back to header
   HeapBlock *block = (HeapBlock *)((uint8_t *)ptr - sizeof(HeapBlock));
-  allocs -= block->size();
 
   // 1. Mark as free
   block->set_free(block->size());
+  allocs -= block->size();
 
   // 2. Simple Coalesce (Merge with next)
   if (block->next && !block->next->is_used()) {
