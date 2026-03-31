@@ -34,6 +34,26 @@ void RTC::get_time_string(char *out_buffer) {
   out_buffer[17] = '\0';
 }
 
+void RTC::get_time_string(DateTime dt, char *out_buffer) {
+  auto format_digit = [&](int val, int offset) {
+    out_buffer[offset] = (val / 10) + '0';
+    out_buffer[offset + 1] = (val % 10) + '0';
+  };
+
+  format_digit(dt.day, 0);
+  out_buffer[2] = ':';
+  format_digit(dt.month, 3);
+  out_buffer[5] = ':';
+  format_digit(dt.year, 6);
+  out_buffer[8] = '-';
+  format_digit(dt.hour, 9);
+  out_buffer[11] = ':';
+  format_digit(dt.minute, 12);
+  out_buffer[14] = ':';
+  format_digit(dt.second, 15);
+  out_buffer[17] = '\0';
+}
+
 namespace RTC {
 // Private constants for RTC registers
 enum { CMOS_ADDR = 0x70, CMOS_DATA = 0x71 };

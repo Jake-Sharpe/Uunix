@@ -5,6 +5,8 @@
 #include <stddef.h> // for size_t
 #include <stdint.h>
 
+static int allocs = 0;
+
 struct HeapBlock {
   uint64_t size_and_flag;
   HeapBlock *next;
@@ -20,11 +22,13 @@ void kmalloc_init();
 void *kmalloc(uint64_t size);
 void kfree(void *ptr);
 
+// Placement new
+inline void *operator new(size_t, void *ptr) { return ptr; }
+
 void *operator new(size_t size);
 void *operator new[](size_t size);
 void operator delete(void *p);
 void operator delete[](void *p);
 void operator delete(void *p, size_t size);
 void operator delete[](void *p, size_t size);
-
 #endif

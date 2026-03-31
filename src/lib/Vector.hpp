@@ -30,13 +30,16 @@ template <typename T> Vector<T>::Vector() {
   _size = 0;
   _capacity = 4;
   data = (T *)kmalloc(_capacity * sizeof(T));
-  // Zero-initialize so String::operator= doesn't try to delete[] garbage
-  for (uint64_t i = 0; i < _capacity * sizeof(T); i++) {
-    ((uint8_t *)data)[i] = 0;
+  // Construct each element with the default constructor
+  for (uint64_t i = 0; i < _capacity; i++) {
+    new (&data[i]) T();
   }
 }
 
 template <typename T> Vector<T>::~Vector() {
+  for (uint64_t i = 0; i < _size; i++) {
+    data[i].~T();
+  }
   if (data)
     kfree(data);
 }
@@ -52,9 +55,13 @@ template <typename T> inline void Grow(Vector<T> *vector) {
   for (uint64_t i = 0; i < vector->_size; i++) {
     new_data[i] = vector->data[i];
   }
-  vector->_capacity = new_cap;
+  // Destroy the old elements
+  for (uint64_t i = 0; i < vector->_size; i++) {
+    vector->data[i].~T();
+  }
   if (vector->data)
     kfree(vector->data);
+  vector->_capacity = new_cap;
   vector->data = new_data;
 }
 

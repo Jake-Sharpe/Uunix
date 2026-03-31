@@ -27,6 +27,7 @@ void kmalloc_init() {
 }
 
 void *kmalloc(uint64_t size) {
+  allocs += size;
   if (size == 0)
     return nullptr;
 
@@ -69,6 +70,7 @@ void kfree(void *ptr) {
 
   // Step back to header
   HeapBlock *block = (HeapBlock *)((uint8_t *)ptr - sizeof(HeapBlock));
+  allocs -= block->size();
 
   // 1. Mark as free
   block->set_free(block->size());

@@ -3,7 +3,7 @@
 
 struct Terminal {
   int last = 0;
-  char buffer[40][256];
+  char buffer[80][256];
   void Shift();
   void init();
   void Draw();

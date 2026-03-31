@@ -19,6 +19,8 @@ public:
   bool operator==(const String &other) const;
 
   String(int64_t number);
+  bool StartsWith(const char *other) const;
+  String Substring(int start, int end) const;
 };
 bool StrCmp(const char *a, const char *b);
 

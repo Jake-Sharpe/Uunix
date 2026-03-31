@@ -4,6 +4,7 @@
 #include "../lib/Vector.hpp"
 #include "../lib/string.hpp"
 #include "MemoryManager/Kmalloc.hpp"
+#include "Shell/Shell.hpp"
 #include "debug.hpp"
 #include <stdint.h>
 
@@ -41,9 +42,15 @@ extern "C" uint64_t handle_syscall(uint64_t arg1, uint64_t arg2,
   asm volatile("mov %%rax, %0" : "=r"(num));
 
   switch (num) {
+  case SYS_EXIT: {
+    Shell::KernelLoop();
+    return 0;
+  }
+
   case SYS_WRITECONSOLE: {
     if (Syscall::global_terminal) {
       Syscall::global_terminal->Write((const char *)arg1);
+      Syscall::global_terminal->Draw();
     }
     return 0;
   }

@@ -118,3 +118,29 @@ bool StrCmp(const char *a, const char *b) {
   }
   return (*a == *b);
 }
+
+bool String::StartsWith(const char *other) const {
+  int len = 0;
+  while (other[len] != '\0') {
+    len++;
+  }
+  if (length < len) {
+    return false;
+  }
+  for (int i = 0; i < len; i++) {
+    if (buffer[i] != other[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+String String::Substring(int start, int end) const {
+  int len = end - start;
+  String result = String::Alloc(len);
+  for (int i = 0; i < len; i++) {
+    result.buffer[i] = buffer[start + i];
+  }
+  result.buffer[len] = '\0';
+  return result;
+}
