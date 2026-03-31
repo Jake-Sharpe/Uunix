@@ -115,14 +115,25 @@ page_table_l2: resb 4096 * 4
 stack_bottom:  resb 4096 * 16
 stack_top:
 
+global stack_top ; Export stack top for C++
+
 section .rodata
 align 8
+
+global gdt64
+global gdt64_ptr
+
 gdt64:
     dq 0 ; null
     dq (1<<43) | (1<<44) | (1<<47) | (1<<53) ; kernel code 0x08
     dq (1<<41) | (1<<44) | (1<<47)           ; kernel data 0x10
-    dq (1<<41) | (1<<44) | (1<<47) | (3<<45) ; user data 0x18
-    dq (1<<43) | (1<<44) | (1<<47) | (1<<53) | (3<<45) ; user code 0x20
+    dq (1<<41) | (1<<44) | (1<<47) | (3<<45) ; user data 0x18 (Selector 0x18)
+    dq (1<<43) | (1<<44) | (1<<47) | (1<<53) | (3<<45) ; user code 0x20 (Selector 0x20)
+    
+    ; TSS Descriptor (16 bytes / 2 slots)
+    .tss_low:  dq 0 ; To be filled by C++
+    .tss_high: dq 0 ; To be filled by C++
+
 gdt64_ptr:
     dw $ - gdt64 - 1
     dq gdt64

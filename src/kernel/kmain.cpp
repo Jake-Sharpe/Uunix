@@ -8,18 +8,19 @@
 #include "MemoryManager/Kmalloc.hpp"
 #include "MemoryManager/MMap.hpp"
 #include "Shell/Shell.hpp"
+#include "Shell/SysFL/DefineTSS.hpp"
 #include "Timing/RTC.hpp"
 #include "debug.hpp"
 #include "syscalls.hpp"
 
 char Buffer[256];
+extern "C" uint64_t stack_top;
 
 extern "C" void kmain(void *multiboot_info) {
-
+  // install_tss(stack_top);
   Debug::init();
   Debug::print("--- Uunix Kernel Starting ---");
   Debug::newline();
-  Debug::print("Hello World ");
 
   Framebuffer::init(multiboot_info);
   Shell::global_term.init();
@@ -32,10 +33,6 @@ extern "C" void kmain(void *multiboot_info) {
   Vector<String> *FilesList = new Vector<String>();
   ListFiles(FilesList);
   delete FilesList;
-
-  Debug::print("Files in root directory: ");
-
-  Debug::newline();
 
   Debug::print("Fully Initialized");
   while (1) {
